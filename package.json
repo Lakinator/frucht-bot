@@ -1,0 +1,14 @@
+{
+  "name": "frucht-bot",
+  "version": "1.0.0",
+  "description": "Discord Bot für FruchtLabor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "https://github.com/Lakinator",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^13.1.0"
+  }
+}
