@@ -1,13 +1,5 @@
-const axios = require('axios');
+const clash = require('./clashconfig/clash');
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder } = require('@discordjs/builders');
-const { coctoken } = require('../config.json');
-
-const path = 'https://api.clashofclans.com/v1/';
-const config = {
-    headers: {
-        'authorization': 'Bearer ' + coctoken
-    }
-};
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -19,7 +11,7 @@ module.exports = {
                 .setDescription('Info about a CoC player')
                 .addStringOption(option =>
                     option.setName('playerid')
-                        .setDescription('The CoC Player ID')
+                        .setDescription('The CoC Player ID (including the \'#\')')
                         .setRequired(true))
         )
         .addSubcommand(subcommand =>
@@ -28,90 +20,43 @@ module.exports = {
                 .setDescription('Info about a CoC clan')
                 .addStringOption(option =>
                     option.setName('clanid')
-                        .setDescription('The CoC Clan ID')
+                        .setDescription('The CoC Clan ID (including the \'#\')')
                         .setRequired(true))
         ),
     async execute(interaction) {
 
         if (interaction.options.getSubcommand() == 'player') {
 
-            const uri = path + 'players/' + encodeURIComponent(interaction.options.get('playerid').value);
+            clash.getPlayerInfo(interaction.options.get('playerid').value)
+                .then(
+                    function (data) {
+                        // TODO: Edge cases bruh
 
-            axios.get(uri, config)
-                .then(function (response) {
-                    // TODO: Edge cases bruh
-
-                    interaction.reply('Wow! Player ' + response.data.name + ' is already townhall level ' + response.data.townHallLevel + '!');
-                })
-                .catch(function (error) {
-                    // TODO: put error handling in own function
-                    let err = 'An error ocurred while fetching data.';
-
-                    if (error.response) {
-                        // The request was made and the server responded with a status code
-                        // that falls out of the range of 2xx
-                        console.log(error.response.data);
-                        console.log(error.response.status);
-                        console.log(error.response.headers);
-
-                        err = 'Error: ' + error.response.data.message;
-                    } else if (error.request) {
-                        // The request was made but no response was received
-                        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                        // http.ClientRequest in node.js
-                        console.log(error.request);
-                    } else {
-                        // Something happened in setting up the request that triggered an Error
-                        console.log('Error', error.message);
+                        interaction.reply('Wow! Player ' + data.name + ' is already townhall level ' + data.townHallLevel + '!');
+                    },
+                    function (err) {
+                        console.log(err);
+                        interaction.reply(err);
                     }
-                    console.log(error.config);
-
-                    interaction.reply(err);
-                })
-                .then(function () {
-                    // always executed
-                });
+                );
 
         } else if (interaction.options.getSubcommand() == 'clan') {
 
-            const uri = path + 'clans/' + encodeURIComponent(interaction.options.get('clanid').value);
+            clash.getClanInfo(interaction.options.get('clanid').value)
+                .then(
+                    function (data) {
+                        // TODO: Edge cases bruh
 
-            axios.get(uri, config)
-                .then(function (response) {
-                    // TODO: Edge cases bruh
-
-                    interaction.reply('Clan ' + response.data.tag + ' already won ' + response.data.warWins + ' clan wars!');
-                })
-                .catch(function (error) {
-                    let err = 'An error ocurred while fetching data.';
-
-                    if (error.response) {
-                        // The request was made and the server responded with a status code
-                        // that falls out of the range of 2xx
-                        console.log(error.response.data);
-                        console.log(error.response.status);
-                        console.log(error.response.headers);
-
-                        err = 'Error: ' + error.response.data.message;
-                    } else if (error.request) {
-                        // The request was made but no response was received
-                        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                        // http.ClientRequest in node.js
-                        console.log(error.request);
-                    } else {
-                        // Something happened in setting up the request that triggered an Error
-                        console.log('Error', error.message);
+                        interaction.reply('Clan ' + data.tag + ' already won ' + data.warWins + ' clan wars!');
+                    },
+                    function (err) {
+                        console.log(err);
+                        interaction.reply(err);
                     }
-                    console.log(error.config);
-
-                    interaction.reply(err);
-                })
-                .then(function () {
-                    // always executed
-                });
+                );
 
         } else {
-            // TODO: Error unknown command
+            // TODO: Error unknown subcommand
         }
 
     },
