@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder } = require('@discordjs/builders');
-const coc_api_handler = require('./coc_api/coc_api_handler');
+const coc_api_handler = require('../coc_api/coc_api_handler');
 
 module.exports = {
     data: new SlashCommandBuilder()

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder } = require('@discordjs/builders');
-const coc_api_handler = require('./coc_api/coc_api_handler');
+const coc_api_handler = require('../coc_api/coc_api_handler');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -25,7 +25,7 @@ module.exports = {
                 if (data.status == 'ok') {
                     reply = 'User ' + data.tag + ' successfully registered!';
 
-                    // TODO: Add role "verified"
+                    // TODO: Add user to database
 
                 } else {
                     reply = 'Error: Token status => ' + data.status;

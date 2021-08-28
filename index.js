@@ -1,5 +1,6 @@
 // Require the necessary discord.js classes
 const fs = require('fs');
+const db_storage_handler = require('./db_storage/db_storage_handler');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.json');
 
@@ -9,6 +10,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 // When the client is ready, run this code (only once)
 client.once('ready', () => {
 	console.log('Ready!');
+	db_storage_handler.syncModel(true);
 });
 
 // Slash commands

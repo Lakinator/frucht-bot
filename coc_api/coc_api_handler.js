@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { coctoken } = require('../../config.json');
+const { coctoken } = require('../config.json');
 
 const path = 'https://api.clashofclans.com/v1/';
 const config = {
