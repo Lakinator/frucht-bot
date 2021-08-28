@@ -9,58 +9,58 @@ const config = {
 };
 
 module.exports = {
-    verify: function (playerid, usertoken) {
+    verify: (playerid, usertoken) => {
 
-        return new Promise(function (success, error) {
+        return new Promise((resolve, reject) => {
 
             const uri = path + 'players/' + encodeURIComponent(playerid) + '/verifytoken';
 
             axios.post(uri, { token: encodeURIComponent(usertoken) }, config)
-                .then(function (response) {
-                    success(response.data);
+                .then((response) => {
+                    resolve(response.data);
                 })
-                .catch(function (err) {
-                    error(handleHttpsError(err));
+                .catch((err) => {
+                    reject(handleHttpsError(err));
                 })
-                .then(function () {
+                .finally(() => {
                     // always executed
                 });
 
         });
     },
-    getPlayerInfo: function (playerid) {
+    getPlayerInfo: (playerid) => {
 
-        return new Promise(function (success, error) {
+        return new Promise((success, error) => {
 
             const uri = path + 'players/' + encodeURIComponent(playerid);
 
             axios.get(uri, config)
-                .then(function (response) {
+                .then((response) => {
                     success(response.data);
                 })
-                .catch(function (err) {
+                .catch((err) => {
                     error(handleHttpsError(err));
                 })
-                .then(function () {
+                .finally(() => {
                     // always executed
                 });
 
         });
     },
-    getClanInfo: function (clanid) {
+    getClanInfo: (clanid) => {
 
-        return new Promise(function (success, error) {
+        return new Promise((success, error) => {
 
             const uri = path + 'clans/' + encodeURIComponent(clanid);
 
             axios.get(uri, config)
-                .then(function (response) {
+                .then((response) => {
                     success(response.data);
                 })
-                .catch(function (err) {
+                .catch((err) => {
                     error(handleHttpsError(err));
                 })
-                .then(function () {
+                .finally(() => {
                     // always executed
                 });
 
@@ -69,12 +69,12 @@ module.exports = {
 };
 
 function handleHttpsError(error, enableLog = false) {
-    let err = 'An error ocurred while fetching data.';
+    let message = 'An error ocurred while fetching data.';
 
     if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        err = 'Error ' + error.response.status + ': ' + error.response.data.message + '.';
+        message = 'Error ' + error.response.status + ': ' + error.response.data.message + '.';
     } else if (error.request) {
         // The request was made but no response was received
         // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
@@ -85,5 +85,5 @@ function handleHttpsError(error, enableLog = false) {
         if (enableLog) console.log('Error', error.message);
     }
 
-    return err;
+    return new Error(message);
 }

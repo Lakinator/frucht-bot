@@ -1,5 +1,5 @@
-const clash = require('./clashconfig/clash');
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder } = require('@discordjs/builders');
+const coc_api_handler = require('./coc_api/coc_api_handler');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -26,34 +26,37 @@ module.exports = {
     async execute(interaction) {
 
         if (interaction.options.getSubcommand() == 'player') {
+            let reply = 'No info.';
+            const playerid = interaction.options.get('playerid').value;
 
-            clash.getPlayerInfo(interaction.options.get('playerid').value)
-                .then(
-                    function (data) {
-                        // TODO: Edge cases bruh
+            coc_api_handler.getPlayerInfo(playerid)
+                .then((data) => {
+                    // TODO: Edge cases bruh
 
-                        interaction.reply('Wow! Player ' + data.name + ' is already townhall level ' + data.townHallLevel + '!');
-                    },
-                    function (err) {
-                        console.log(err);
-                        interaction.reply(err);
-                    }
-                );
+                    reply = 'Wow! Player ' + data.name + ' is already townhall level ' + data.townHallLevel + '!';
+                }
+                ).catch((error) => {
+                    console.log(error);
+                    reply = error.message;
+                }).finally(() => {
+                    interaction.reply(reply);
+                });
 
         } else if (interaction.options.getSubcommand() == 'clan') {
+            let reply = 'No info.';
+            const clanid = interaction.options.get('clanid').value;
 
-            clash.getClanInfo(interaction.options.get('clanid').value)
-                .then(
-                    function (data) {
-                        // TODO: Edge cases bruh
+            coc_api_handler.getClanInfo(clanid)
+                .then((data) => {
+                    // TODO: Edge cases bruh
 
-                        interaction.reply('Clan ' + data.tag + ' already won ' + data.warWins + ' clan wars!');
-                    },
-                    function (err) {
-                        console.log(err);
-                        interaction.reply(err);
-                    }
-                );
+                    interaction.reply('Clan ' + data.tag + ' already won ' + data.warWins + ' clan wars!');
+                }).catch((error) => {
+                    console.log(error);
+                    reply = error.message;
+                }).finally(() => {
+                    interaction.reply(reply);
+                });
 
         } else {
             // TODO: Error unknown subcommand
