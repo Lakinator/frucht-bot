@@ -19,7 +19,7 @@ module.exports = {
         const playerid = interaction.options.get('playerid').value;
         const usertoken = interaction.options.get('usertoken').value;
 
-        let link = await db_storage_handler.getLinkFromCoCId(playerid);
+        const link = await db_storage_handler.getLinkFromCoCId(playerid);
 
         if (link) {
 
@@ -39,6 +39,7 @@ module.exports = {
                                 await db_storage_handler.addLink(interaction.user.id, playerid, data.name, data.townHallLevel)
                                     .then((entry) => {
                                         reply = 'CoC Account ' + bold(entry.coc_name + entry.coc_id) + ' is now linked to ' + userMention(entry.discord_id) + '!';
+                                        // TODO: give townhall role
                                     }).catch((error) => {
                                         console.log(error);
                                         reply = 'Error inserting into database: ' + error.message;

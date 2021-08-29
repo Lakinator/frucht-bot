@@ -1,5 +1,6 @@
-const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder, bold, userMention, roleMention } = require('@discordjs/builders');
+const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder, italic, bold, userMention, roleMention } = require('@discordjs/builders');
 const { Permissions } = require('discord.js');
+const coc_api_handler = require('../coc_api/coc_api_handler');
 const db_storage_handler = require('../db_storage/db_storage_handler');
 
 module.exports = {
@@ -27,6 +28,20 @@ module.exports = {
                     option.setName('townhall')
                         .setDescription('Townhall number')
                         .setRequired(true))
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('showall')
+                .setDescription('Shows all role entries')
+        )
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('update')
+                .setDescription('Updates the roles of all or one member')
+                .addUserOption(option =>
+                    option.setName('user')
+                        .setDescription('The user')
+                        .setRequired(false))
         ),
     async execute(interaction) {
 
@@ -58,7 +73,7 @@ module.exports = {
                         });
                 }
             } else {
-                reply = 'You are not allowed to do this.';
+                reply = 'Insufficient permissions.';
             }
 
             await interaction.reply(reply);
@@ -85,7 +100,45 @@ module.exports = {
                     });
 
             } else {
-                reply = 'You are not allowed to do this.'
+                reply = 'Insufficient permissions.';
+            }
+
+            await interaction.reply(reply);
+
+        } else if (interaction.options.getSubcommand() == 'showall') {
+            let reply = 'Unknown error.';
+
+            const townhallRoles = await db_storage_handler.getAllTownhallRoles();
+
+            if (townhallRoles.length > 0) {
+                const roleString = townhallRoles.map(trole => trole.townhall + ': ' + roleMention(trole.role_id)).join('\n') || 'No roles.';
+                reply = `- ${italic('Current townhall roles')} -\n` + roleString;
+            } else {
+                reply = 'There are no townhall roles yet.';
+            }
+
+            await interaction.reply(reply);
+
+        } else if (interaction.options.getSubcommand() == 'update') {
+            let reply = 'Unknown error.';
+
+            // only certain members should be allowed to use this command (permissions!)
+            if (interaction.member.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) {
+                const user_id_option = interaction.options.get('user');
+
+                if (user_id_option) {
+                    // update single user
+                    const links = await db_storage_handler.getLinksFromDiscordId(user_id_option.value);
+                    await updateCachedCoCData(links);
+                    // TODO: give roles
+                    reply = italic('Under construction.');
+                } else {
+                    // TODO: update all users
+                    reply = italic('Under construction.');
+                }
+
+            } else {
+                reply = 'Insufficient permissions.';
             }
 
             await interaction.reply(reply);
@@ -96,3 +149,17 @@ module.exports = {
 
     },
 };
+
+async function updateCachedCoCData(links) {
+    for (let link of links) {
+        await coc_api_handler.getPlayerInfo(link.coc_id)
+            .then(async (data) => {
+                await db_storage_handler.editLink(link.discord_id, link.coc_id, data.name, data.townHallLevel)
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            }).catch((error) => {
+                console.log(error);
+            });
+    }
+}

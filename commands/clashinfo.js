@@ -39,7 +39,7 @@ module.exports = {
             let reply = 'No info.';
             const playerid = interaction.options.get('playerid').value;
 
-            let link = await db_storage_handler.getLinkFromCoCId(playerid);
+            const link = await db_storage_handler.getLinkFromCoCId(playerid);
 
             if (link) {
                 reply = 'The CoC Account ' + bold(link.coc_name + link.coc_id) + ' (TH: ' + link.coc_townhall_level + ') is linked to ' + userMention(link.discord_id) + '!';
@@ -70,64 +70,13 @@ module.exports = {
 
             await coc_api_handler.getClanInfo(clanid)
                 .then((data) => {
-                    interaction.reply('Clan ' + data.tag + ' already won ' + data.warWins + ' clan wars!');
+                    reply = 'Clan ' + data.tag + ' already won ' + data.warWins + ' clan wars!';
                 }).catch((error) => {
                     console.log(error);
                     reply = error.message;
                 }).finally(() => {
                     interaction.reply(reply);
                 });
-
-        } else if (interaction.options.getSubcommand() == 'editrole') {
-            // TODO: only certain role members should be allowed to use this command (permissions!)
-
-            let reply = 'No info.';
-            const townhall = interaction.options.get('townhall').value;
-            const role = interaction.options.get('role').value;
-
-            const throle = await db_storage_handler.getTownhallRole(townhall);
-
-            if (throle) {
-                await db_storage_handler.editTownhallRole(townhall, role)
-                    .then(() => {
-                        reply = roleMention(role) + ' is now the new role for townhall ' + townhall + '.';
-                    }).catch((error) => {
-                        console.log(error);
-                        reply = 'Error updating the database: ' + error.message;
-                    });
-            } else {
-                await db_storage_handler.addTownhallRole(townhall, role)
-                    .then((entry) => {
-                        reply = roleMention(entry.role_id) + ' for townhall ' + entry.townhall + ' added.';
-                    }).catch((error) => {
-                        console.log(error);
-                        reply = 'Error inserting into database: ' + error.message;
-                    });
-            }
-
-            await interaction.reply(reply);
-
-        } else if (interaction.options.getSubcommand() == 'deleterole') {
-            // TODO: only certain role members should be allowed to use this command (permissions!)
-
-            let reply = 'No info.';
-            const townhall = interaction.options.get('townhall').value;
-
-            await db_storage_handler.deleteTownhallRole(townhall)
-                .then((count) => {
-
-                    if (count == 0) {
-                        reply = 'A role for townhall ' + townhall + ' doesn\'t exist yet.';
-                    } else {
-                        reply = 'Successfully deleted role entry for townhall ' + townhall + '.';
-                    }
-
-                }).catch((error) => {
-                    console.log(error);
-                    reply = 'Error deleting stuff from the database: ' + error.message;
-                });
-
-            await interaction.reply(reply);
 
         } else {
             // TODO: Error unknown subcommand

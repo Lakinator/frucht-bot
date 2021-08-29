@@ -21,9 +21,6 @@ module.exports = {
                 })
                 .catch((err) => {
                     reject(handleHttpsError(err));
-                })
-                .finally(() => {
-                    // always executed
                 });
 
         });
@@ -40,9 +37,6 @@ module.exports = {
                 })
                 .catch((err) => {
                     error(handleHttpsError(err));
-                })
-                .finally(() => {
-                    // always executed
                 });
 
         });
@@ -59,9 +53,6 @@ module.exports = {
                 })
                 .catch((err) => {
                     error(handleHttpsError(err));
-                })
-                .finally(() => {
-                    // always executed
                 });
 
         });
