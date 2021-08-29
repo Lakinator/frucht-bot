@@ -34,9 +34,7 @@ const townhallRoles = sequelize.define('townhall_roles', {
 	},
 	role_id: {
 		type: Sequelize.STRING(255),
-		primaryKey: true,
 		allowNull: false,
-		unique: true,
 	}
 });
 
