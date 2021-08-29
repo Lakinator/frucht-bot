@@ -1,11 +1,10 @@
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder, bold, userMention } = require('@discordjs/builders');
-const coc_api_handler = require('../coc_api/coc_api_handler');
 const db_storage_handler = require('../db_storage/db_storage_handler');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('clashunlink')
-        .setDescription('Unlinks your Discord Account from your CoC Account!')
+        .setDescription('Unlinks your Discord Account from your CoC Account.')
         .addStringOption(option =>
             option.setName('playerid')
                 .setDescription('Your CoC Player ID (including the \'#\')')
@@ -19,7 +18,7 @@ module.exports = {
                 if (count == 0) {
                     reply = 'No linkage between CoC Account ' + bold(playerid) + ' and user ' + userMention(interaction.user.id) + ' was found.';
                 } else {
-                    reply = 'CoC Account ' + bold(playerid) + ' was successfully unlinked from ' + userMention(interaction.user.id) + '!';
+                    reply = 'CoC Account ' + bold(playerid) + ' was successfully unlinked from ' + userMention(interaction.user.id) + '.';
                 }
             }).catch((error) => {
                 console.log(error);

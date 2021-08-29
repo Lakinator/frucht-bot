@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder, bold, userMention, roleMention } = require('@discordjs/builders');
-const { Role } = require('discord.js');
 const coc_api_handler = require('../coc_api/coc_api_handler');
 const db_storage_handler = require('../db_storage/db_storage_handler');
 
@@ -32,27 +31,6 @@ module.exports = {
                 .addStringOption(option =>
                     option.setName('clanid')
                         .setDescription('The CoC Clan ID (including the \'#\')')
-                        .setRequired(true))
-        )
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('editrole')
-                .setDescription('Edit a townhall role entry')
-                .addIntegerOption(option =>
-                    option.setName('townhall')
-                        .setDescription('Townhall number')
-                        .setRequired(true))
-                .addRoleOption(option =>
-                    option.setName('role')
-                        .setDescription('The role corresponding to the townhall')
-                        .setRequired(true))
-        ).addSubcommand(subcommand =>
-            subcommand
-                .setName('deleterole')
-                .setDescription('Delete a townhall role entry')
-                .addIntegerOption(option =>
-                    option.setName('townhall')
-                        .setDescription('Townhall number')
                         .setRequired(true))
         ),
     async execute(interaction) {
