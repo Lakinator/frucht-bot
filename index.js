@@ -8,9 +8,14 @@ const { token } = require('./config.json');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 // When the client is ready, run this code (only once)
-client.once('ready', () => {
+client.once('ready', async () => {
+	await db_storage_handler.syncModel()
+		.then((msg) => {
+			console.log(msg);
+		}).catch((error) => {
+			console.log(error);
+		});
 	console.log('Ready!');
-	db_storage_handler.syncModel(true);
 });
 
 // Slash commands
@@ -37,6 +42,7 @@ client.on('interactionCreate', async interaction => {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
+
 });
 
 // Login to Discord with your client's token
