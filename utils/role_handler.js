@@ -50,5 +50,22 @@ module.exports = {
                     console.log(error);
                 });
         }
+    },
+    removeIncorrectRoles: async (discord_id, guild) => {
+        const townhallRoleEntries = await db_storage_handler.getAllTownhallRoles();
+
+        for (let entry of townhallRoleEntries) {
+            const linkEntries = await db_storage_handler.getLinksFromDiscordIdTownhall(discord_id, entry.townhall);
+            if (linkEntries.length == 0) {
+                // the user does not have this townhall level linked
+                const member = guild.members.cache.get(discord_id);
+                if (member.roles.cache.has(entry.role_id)) {
+                    await member.roles.remove(entry.role_id)
+                        .catch((error) => {
+                            console.log(error);
+                        });
+                }
+            }
+        }
     }
 };

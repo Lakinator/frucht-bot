@@ -161,7 +161,7 @@ module.exports = {
 
                     await role_handler.giveRoles(links, interaction.guild);
 
-                    // TODO: remove roles where the user doesn't have the townhall for
+                    await role_handler.removeIncorrectRoles(user_id_option.value, interaction.guild);
 
                     reply = 'Update of ' + userMention(user_id_option.value) + ' successful!';
                 } else {
@@ -172,7 +172,11 @@ module.exports = {
 
                     await role_handler.giveRoles(links, interaction.guild);
 
-                    // TODO: remove roles where the users don't have the townhall for
+                    const discord_id_entries = await db_storage_handler.getLinkedDiscordIds();
+
+                    for (let entry of discord_id_entries) {
+                        await role_handler.removeIncorrectRoles(entry.discord_id, interaction.guild);
+                    }
 
                     reply = 'Update successful!';
                 }
