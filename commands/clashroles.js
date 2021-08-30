@@ -2,6 +2,7 @@ const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder, italic, bold, u
 const { Permissions } = require('discord.js');
 const coc_api_handler = require('../coc_api/coc_api_handler');
 const db_storage_handler = require('../db_storage/db_storage_handler');
+const role_handler = require('../utils/role_handler');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,6 +43,10 @@ module.exports = {
                     option.setName('user')
                         .setDescription('The user')
                         .setRequired(false))
+                .addBooleanOption(option =>
+                    option.setName('update_coc_cache')
+                        .setDescription('Whether the cached CoC data should be updated')
+                        .setRequired(false))
         ),
     async execute(interaction) {
 
@@ -51,22 +56,36 @@ module.exports = {
             // only certain members should be allowed to use this command (permissions!)
             if (interaction.member.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) {
                 const townhall = interaction.options.get('townhall').value;
-                const role = interaction.options.get('role').value;
+                const new_role_id = interaction.options.get('role').value;
 
                 const throle = await db_storage_handler.getTownhallRole(townhall);
 
                 if (throle) {
-                    await db_storage_handler.editTownhallRole(townhall, role)
-                        .then(() => {
-                            reply = roleMention(role) + ' is now the new role for townhall ' + townhall + '.';
+                    await db_storage_handler.editTownhallRole(townhall, new_role_id)
+                        .then(async () => {
+                            // remove old role and add new one
+                            const old_role_id = throle.role_id;
+                            const discord_id_entries = await db_storage_handler.getDiscordIdsLinkedToTownhall(townhall);
+                            const discord_ids = discord_id_entries.map((entry) => entry.discord_id);
+
+                            await role_handler.addRole(new_role_id, discord_ids, interaction.guild);
+                            await role_handler.removeRole(old_role_id, discord_ids, interaction.guild);
+
+                            reply = roleMention(new_role_id) + ' is now the new role for townhall ' + townhall + '.';
                         }).catch((error) => {
                             console.log(error);
                             reply = 'Error updating the database: ' + error.message;
                         });
                 } else {
-                    await db_storage_handler.addTownhallRole(townhall, role)
-                        .then((entry) => {
-                            reply = roleMention(entry.role_id) + ' for townhall ' + entry.townhall + ' added.';
+                    await db_storage_handler.addTownhallRole(townhall, new_role_id)
+                        .then(async (new_entry) => {
+                            // add members to new role
+                            const discord_id_entries = await db_storage_handler.getDiscordIdsLinkedToTownhall(new_entry.townhall);
+                            const discord_ids = discord_id_entries.map((entry) => entry.discord_id);
+
+                            await role_handler.addRole(new_entry.role_id, discord_ids, interaction.guild);
+
+                            reply = roleMention(new_entry.role_id) + ' for townhall ' + new_entry.townhall + ' added.';
                         }).catch((error) => {
                             console.log(error);
                             reply = 'Error inserting into database: ' + error.message;
@@ -84,13 +103,20 @@ module.exports = {
             // only certain members should be allowed to use this command (permissions!)
             if (interaction.member.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) {
                 const townhall = interaction.options.get('townhall').value;
+                const old_role_id = (await db_storage_handler.getTownhallRole(townhall)).role_id;
 
                 await db_storage_handler.deleteTownhallRole(townhall)
-                    .then((count) => {
+                    .then(async (count) => {
 
                         if (count == 0) {
                             reply = 'A role for townhall ' + townhall + ' doesn\'t exist yet.';
                         } else {
+                            // remove old role
+                            const discord_id_entries = await db_storage_handler.getDiscordIdsLinkedToTownhall(townhall);
+                            const discord_ids = discord_id_entries.map((entry) => entry.discord_id);
+
+                            await role_handler.removeRole(old_role_id, discord_ids, interaction.guild);
+
                             reply = 'Successfully deleted role entry for townhall ' + townhall + '.';
                         }
 
@@ -125,16 +151,30 @@ module.exports = {
             // only certain members should be allowed to use this command (permissions!)
             if (interaction.member.permissions.has(Permissions.FLAGS.MANAGE_ROLES)) {
                 const user_id_option = interaction.options.get('user');
+                const update_coc_cache_option = interaction.options.get('update_coc_cache');
 
                 if (user_id_option) {
                     // update single user
                     const links = await db_storage_handler.getLinksFromDiscordId(user_id_option.value);
-                    await updateCachedCoCData(links);
-                    // TODO: give roles
-                    reply = italic('Under construction.');
+
+                    if (update_coc_cache_option) if (update_coc_cache_option.value) await role_handler.updateCachedCoCData(links);
+
+                    await role_handler.giveRoles(links, interaction.guild);
+
+                    // TODO: remove roles where the user doesn't have the townhall for
+
+                    reply = 'Update of ' + userMention(user_id_option.value) + ' successful!';
                 } else {
-                    // TODO: update all users
-                    reply = italic('Under construction.');
+                    // update all users
+                    const links = await db_storage_handler.getAllLinks();
+
+                    if (update_coc_cache_option) if (update_coc_cache_option.value) await role_handler.updateCachedCoCData(links);
+
+                    await role_handler.giveRoles(links, interaction.guild);
+
+                    // TODO: remove roles where the users don't have the townhall for
+
+                    reply = 'Update successful!';
                 }
 
             } else {
@@ -147,19 +187,5 @@ module.exports = {
             // TODO: Error unknown subcommand
         }
 
-    },
-};
-
-async function updateCachedCoCData(links) {
-    for (let link of links) {
-        await coc_api_handler.getPlayerInfo(link.coc_id)
-            .then(async (data) => {
-                await db_storage_handler.editLink(link.discord_id, link.coc_id, data.name, data.townHallLevel)
-                    .catch((error) => {
-                        console.log(error);
-                    });
-            }).catch((error) => {
-                console.log(error);
-            });
     }
-}
+};

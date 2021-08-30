@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, SlashCommandSubcommandGroupBuilder, bold, userMention } = require('@discordjs/builders');
 const coc_api_handler = require('../coc_api/coc_api_handler');
 const db_storage_handler = require('../db_storage/db_storage_handler');
+const role_handler = require('../utils/role_handler');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -37,9 +38,12 @@ module.exports = {
 
                                 // Add account link to database
                                 await db_storage_handler.addLink(interaction.user.id, playerid, data.name, data.townHallLevel)
-                                    .then((entry) => {
+                                    .then(async (entry) => {
+                                        const role_id_entry = await db_storage_handler.getTownhallRole(entry.coc_townhall_level);
+
+                                        await role_handler.addRole(role_id_entry.role_id, [entry.discord_id], interaction.guild);
+
                                         reply = 'CoC Account ' + bold(entry.coc_name + entry.coc_id) + ' is now linked to ' + userMention(entry.discord_id) + '!';
-                                        // TODO: give townhall role
                                     }).catch((error) => {
                                         console.log(error);
                                         reply = 'Error inserting into database: ' + error.message;
@@ -61,5 +65,5 @@ module.exports = {
         }
 
         await interaction.reply(reply);
-    },
+    }
 };

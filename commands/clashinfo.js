@@ -82,5 +82,5 @@ module.exports = {
             // TODO: Error unknown subcommand
         }
 
-    },
+    }
 };

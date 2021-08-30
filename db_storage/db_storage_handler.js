@@ -70,6 +70,9 @@ module.exports = {
 	getLink: (dc_id, coc_id) => {
 		return accountLinks.findOne({ where: { discord_id: dc_id, coc_id: coc_id } });
 	},
+	getAllLinks: () => {
+		return accountLinks.findAll();
+	},
 	editLink: (dc_id, coc_id, coc_name, coc_th_lvl) => {
 		return accountLinks.update({ coc_name: coc_name, coc_townhall_level: coc_th_lvl }, { where: { discord_id: dc_id, coc_id: coc_id } });
 	},
@@ -82,6 +85,9 @@ module.exports = {
 	getLinkFromCoCId: (coc_id) => {
 		return accountLinks.findOne({ where: { coc_id: coc_id } });
 	},
+	getDiscordIdsLinkedToTownhall: (townhall) => {
+		return accountLinks.findAll({ where: { coc_townhall_level: townhall }, attributes: ['discord_id'] });
+	},
 	addTownhallRole: (townhall, role_id) => {
 		return townhallRoles.create({ townhall: townhall, role_id: role_id });
 	},
@@ -89,7 +95,7 @@ module.exports = {
 		return townhallRoles.update({ role_id: role_id }, { where: { townhall: townhall } });
 	},
 	getTownhallRole: (townhall) => {
-		return townhallRoles.findOne({ where: { townhall: townhall } });
+		return townhallRoles.findOne({ where: { townhall: townhall }, attributes: ['role_id'] });
 	},
 	getAllTownhallRoles: () => {
 		return townhallRoles.findAll();
